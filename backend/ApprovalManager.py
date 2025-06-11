@@ -40,7 +40,9 @@ class ApprovalManager:
                 "log": self._call_log,
             },
         }
-        await websocket.send_text(json.dumps(initial_state))
+        # Serialize the Event objects before sending
+        state_str = json.dumps(initial_state, default=lambda o: "<Event>")
+        await websocket.send_text(state_str)
 
     def remove_connection(self, websocket: WebSocket):
         """Remove a disconnected WebSocket connection."""

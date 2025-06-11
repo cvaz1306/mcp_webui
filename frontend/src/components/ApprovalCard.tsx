@@ -1,4 +1,7 @@
+// src/components/ApprovalCard.tsx
+
 import { FileWarning, Send, Trash2, ShieldAlert, Check, Square, CheckSquare, Server } from 'lucide-react';
+import React from 'react';
 
 export interface ToolCall {
   id: string;
@@ -17,44 +20,43 @@ interface ApprovalCardProps {
   isSelected: boolean;
 }
 
-// --- Custom Renderers ---
+// --- Custom Renderers (Redesigned for Glass UI) ---
 
 const DefaultRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
-  <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-xs whitespace-pre-wrap break-all">
+  <pre className="bg-black/20 p-3 rounded-md text-xs whitespace-pre-wrap break-all font-mono text-white/80">
     {JSON.stringify(kwargs, null, 2)}
   </pre>
 );
 
 const FileSystemRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
-  <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 p-4 rounded-lg">
-    <div className="flex items-center text-yellow-800 dark:text-yellow-300">
-      <FileWarning className="mr-3" size={24} />
+  <div className="bg-yellow-500/10 border border-yellow-400/50 p-4 rounded-lg">
+    <div className="flex items-center text-yellow-300">
+      <FileWarning className="mr-3 flex-shrink-0" size={24} />
       <h4 className="font-bold text-lg">Filesystem Operation</h4>
     </div>
-    <p className="mt-2 text-yellow-700 dark:text-yellow-400">
+    <p className="mt-2 text-yellow-400/90">
       This action will modify the filesystem.
     </p>
-    <div className="mt-4 space-y-2 font-mono text-sm">
-      <p><strong>Path:</strong> <span className="text-red-500">{kwargs.path}</span></p>
-      <p><strong>Recursive:</strong> <span className={kwargs.recursive ? 'font-bold text-red-600' : 'text-gray-500'}>{String(kwargs.recursive)}</span></p>
+    <div className="mt-4 space-y-2 font-mono text-sm text-yellow-200/90">
+      <p><strong>Path:</strong> <span className="text-yellow-300 font-semibold">{kwargs.path}</span></p>
+      <p><strong>Recursive:</strong> <span className={kwargs.recursive ? 'font-bold text-yellow-300' : 'text-white/50'}>{String(kwargs.recursive)}</span></p>
     </div>
   </div>
 );
 
 const NukeLaunchRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
-  <div className="bg-red-100 dark:bg-red-900/30 border-2 border-dashed border-red-500 p-4 rounded-lg">
-    <div className="flex items-center text-red-800 dark:text-red-200">
-        <ShieldAlert className="mr-3 animate-pulse" size={40} />
-        <h4 className="font-black text-2xl tracking-wider uppercase">Nuclear Launch Detected</h4>
+  <div className="bg-red-500/10 border-2 border-dashed border-red-500/80 p-4 rounded-lg"> {/* animate-pulse */}
+    <div className="flex items-center text-red-200">
+        <ShieldAlert className="mr-3 flex-shrink-0" size={40} />
+        <h4 className="font-black text-2xl tracking-wider uppercase">Nuclear Launch Requested</h4>
     </div>
     <div className="mt-4 font-mono text-center">
-        <p className="text-red-600 dark:text-red-300">Target Coordinates:</p>
-        <p className="text-3xl font-bold text-red-700 dark:text-red-200 my-2">{kwargs.target_coordinates}</p>
-        <p className="text-xs text-gray-500">Confirmation Code: <span className="text-red-400">{kwargs.confirmation_code}</span></p>
+        <p className="text-red-300">Target Coordinates:</p>
+        <p className="text-3xl font-bold text-red-200 my-2">{kwargs.target_coordinates}</p>
+        <p className="text-xs text-white/60">Confirmation Code: <span className="text-red-400">{kwargs.confirmation_code}</span></p>
     </div>
   </div>
 );
-
 
 // --- Main Card Component ---
 
@@ -70,36 +72,36 @@ export const ApprovalCard = ({ toolCall, onApprove, onDeny, onSelect, isSelected
   };
 
   const toolIcons: Record<string, React.ReactNode> = {
-    send_email: <Send size={20} className="text-blue-500" />,
-    delete_file: <Trash2 size={20} className="text-yellow-500" />,
-    launch_nukes: <ShieldAlert size={20} className="text-red-500" />,
+    send_email: <Send size={24} className="text-blue-300" />,
+    delete_file: <Trash2 size={24} className="text-yellow-300" />,
+    launch_nukes: <ShieldAlert size={24} className="text-red-300" />,
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-indigo-500">
-      <div className="p-4">
-        <div className="flex justify-between items-start">
+    <div className="glass-card">
+      <div className="card-content">
+        <div className="flex justify-between items-start gap-4">
           <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">{toolIcons[tool_name] || <Server size={20} />}</div>
+            <div className="flex-shrink-0">{toolIcons[tool_name] || <Server size={24} className="text-gray-300" />}</div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{tool_name}</h3>
-              <p className="text-xs text-gray-400 font-mono">{id}</p>
+              <h3 className="card-title">{tool_name}</h3>
+              <p className="text-xs text-white/50 font-mono mt-1">{id}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <button onClick={() => onSelect(id)} className="text-gray-400 hover:text-indigo-600">
-              {isSelected ? <CheckSquare className="text-indigo-600" /> : <Square />}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <button onClick={() => onSelect(id)} className="text-white/60 hover:text-white transition-colors p-2">
+              {isSelected ? <CheckSquare className="text-indigo-400" size={22} /> : <Square size={22} />}
             </button>
             <button
               onClick={() => onApprove(id)}
-              className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 text-sm font-semibold rounded-md hover:bg-green-600 transition-colors"
+              className="glass-button glass-button--green"
             >
               <Check size={16} />
               <span>Approve</span>
             </button>
             <button
               onClick={() => onDeny(id)}
-              className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-md hover:bg-red-600 transition-colors"
+              className="glass-button glass-button--red"
             >
               <Trash2 size={16} />
               <span>Deny</span>

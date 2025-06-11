@@ -1,0 +1,195 @@
+/* src/app/frosty.css */
+
+/* This layer definition helps Tailwind CSS properly order custom component styles. */
+@layer components {
+    /* --- Main Background (Updated for a Cooler, More "Icy" Feel) --- */
+    .frosty-background {
+        min-height: 100vh;
+        /* NEW: Cooler color palette for a more frosted/icy theme */
+        background: 
+            radial-gradient(circle at 15% 25%, hsla(190, 80%, 70%, 0.3) 0%, transparent 40%),
+            radial-gradient(circle at 85% 65%, hsla(270, 70%, 60%, 0.4) 0%, transparent 50%),
+            radial-gradient(circle at 50% 85%, hsla(220, 80%, 70%, 0.3) 0%, transparent 40%),
+            linear-gradient(135deg, hsl(220, 50%, 40%) 0%, hsl(260, 40%, 30%) 100%);
+        background-attachment: fixed;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px;
+        color: #e0e5f0; /* Slightly softer than pure white */
+        text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        animation: backgroundShift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes backgroundShift {
+        0% {
+            background-color: hsl(220, 50%, 40%);
+            background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+        }
+        100% {
+            background-color: hsl(260, 40%, 30%);
+            background-position: 100% 100%, 100% 100%, 100% 100%, 0% 0%;
+        }
+    }
+
+    /* --- Floating Orbs for Background --- */
+    .floating-orbs {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        /* NEW: Slightly more intense gradient to act as diffuse light sources */
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        animation: float 25s infinite ease-in-out; /* Slightly longer animation duration */
+    }
+    .orb:nth-child(1) { width: 250px; height: 250px; top: 15%; left: 10%; animation-delay: 0s; }
+    .orb:nth-child(2) { width: 180px; height: 180px; top: 60%; right: 15%; animation-delay: -8s; }
+    .orb:nth-child(3) { width: 120px; height: 120px; bottom: 15%; left: 35%; animation-delay: -16s; }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+        33% { transform: translateY(-25px) translateX(15px) rotate(120deg); }
+        66% { transform: translateY(15px) translateX(-20px) rotate(240deg); }
+    }
+
+    /* --- Glass Card (Heavily Updated for a More Frosted Look) --- */
+    .glass-card {
+        position: relative;
+        padding: 40px 30px;
+        border-radius: 24px;
+        
+        /* NEW: Increased blur and reduced saturation for a more frosted appearance */
+        backdrop-filter: blur(30px) saturate(120%);
+        -webkit-backdrop-filter: blur(30px) saturate(120%);
+        
+        /* NEW: Slightly more opaque background with a cool tint */
+        background: rgba(240, 245, 255, 0.15); 
+        
+        /* NEW: Using border-image for a sophisticated edge highlight */
+        /* border: 1px solid transparent; */
+        border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1)) 1;
+
+        /* NEW: Softer, more diffused shadow */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        
+        transform: translateZ(0);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        overflow: hidden;
+    }
+
+    /* NEW: More complex sheen to simulate light reflections */
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: 
+            radial-gradient(circle at top left, rgba(255,255,255,0.3) 0%, transparent 30%),
+            radial-gradient(circle at bottom right, rgba(255,255,255,0.2) 0%, transparent 40%);
+        pointer-events: none;
+        border-radius: inherit;
+        opacity: 0.8;
+    }
+
+    /* NEW: More prominent noise/grain for a textured frost effect */
+    .glass-card::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        /* Updated baseFrequency for a slightly larger grain, and increased opacity */
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+        pointer-events: none;
+        border-radius: inherit;
+        mix-blend-mode: overlay;
+    }
+    
+    .card-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .card-title {
+        font-size: 24px;
+        font-weight: 700;
+        /* NEW: Softer text gradient to match the cool theme */
+        background: linear-gradient(135deg, #f0f5ff 60%, #cdd9e5 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+    }
+
+    /* --- Glass Button (Updated for Consistency and Better Hover Effects) --- */
+    .glass-button {
+        padding: 10px 20px;
+        /* NEW: Increased blur and updated background color for consistency */
+        background: rgba(240, 245, 255, 0.2);
+        backdrop-filter: blur(15px);
+        
+        /* NEW: Using border-image consistent with the card */
+        /* border: 1px solid transparent; */
+        border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2)) 1;
+        
+        border-radius: 12px;
+        color: #f0f5ff; /* Softer text color */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* NEW: More prominent hover sheen */
+    .glass-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .glass-button:not(:disabled):hover {
+        background: rgba(240, 245, 255, 0.3);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        /* NEW: Make border brighter on hover */
+        border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.3)) 1;
+    }
+
+    .glass-button:hover::before {
+        left: 100%;
+    }
+
+    .glass-button:disabled {
+        background: rgba(150, 160, 180, 0.2);
+        border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) 1;
+        color: rgba(240, 245, 255, 0.4);
+        cursor: not-allowed;
+    }
+
+    /* NEW: Button Color Variants with glowing radial gradients on hover */
+    .glass-button--green:not(:disabled):hover { background: radial-gradient(circle at center, rgba(74, 222, 128, 0.4) 0%, rgba(74, 222, 128, 0.2) 100%); border-image: linear-gradient(135deg, rgba(74, 222, 128, 0.8), rgba(74, 222, 128, 0.4)) 1;}
+    .glass-button--red:not(:disabled):hover { background: radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.2) 100%); border-image: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0.4)) 1; }
+    .glass-button--indigo:not(:disabled):hover { background: radial-gradient(circle at center, rgba(99, 102, 241, 0.4) 0%, rgba(99, 102, 241, 0.2) 100%); border-image: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(99, 102, 241, 0.4)) 1; }
+
+
+    /* Ripple effect for clicks */
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+}
