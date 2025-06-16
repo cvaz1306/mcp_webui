@@ -49,14 +49,25 @@ const EditableRenderer = ({ kwargs, onChange }: EditableRendererProps) => {
       </div>
       <ul className="mt-4 space-y-2 font-mono text-sm text-blue-200/90">
         {Object.entries(localKwargs).map(([key, value]) => (
-          <li key={key}>
-            <span className="text-blue-300 font-semibold">{key}</span>:
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => handleChange(key, e.target.value)}
-              className="ml-2 p-1 rounded-md text-blue-300 bg-transparent border border-blue-400/50"
-            />
+          <li key={key} className="flex items-center">
+            <span className="text-blue-300 font-semibold w-32">{key}</span>
+            <div className="flex-grow">
+              {typeof value === 'string' && (value.length > 40 || value.includes('\n')) ? (
+                <textarea
+                  value={value}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  className="w-full p-1 rounded-md text-blue-300 bg-transparent border border-blue-400/50 resize-none"
+                  rows={Math.max(1, value.split('\n').length)}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  className="w-full p-1 rounded-md text-blue-300 bg-transparent border border-blue-400/50"
+                />
+              )}
+            </div>
           </li>
         ))}
       </ul>
