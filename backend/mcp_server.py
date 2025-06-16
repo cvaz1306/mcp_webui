@@ -16,7 +16,7 @@ async def get_weather(city: str) -> str:
     return f"The weather in {city} is sunny and 75°F."
 
 @mcp.tool
-@human_in_the_loop(requires_approval=True, renderer="default")
+@human_in_the_loop(requires_approval=True, renderer="EditableRenderer")
 async def send_email(to: str, subject: str, body: str) -> str:
     """Sends an email.
 

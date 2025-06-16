@@ -1,8 +1,7 @@
 // src/components/ApprovalCard.tsx
 
 import { FileWarning, Send, Trash2, ShieldAlert, Check, Square, CheckSquare, Server } from 'lucide-react';
-import React from 'react';
-
+import React, { useState } from 'react';
 export interface ToolCall {
   id: string;
   tool_name: string;
@@ -14,7 +13,7 @@ export interface ToolCall {
 
 interface ApprovalCardProps {
   toolCall: ToolCall;
-  onApprove: (id: string) => void;
+  onApprove: (id: string, updatedKwargs: Record<string, any>) => void;
   onDeny: (id: string) => void;
   onSelect: (id: string) => void;
   isSelected: boolean;
@@ -27,6 +26,44 @@ const DefaultRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
     {JSON.stringify(kwargs, null, 2)}
   </pre>
 );
+
+interface EditableRendererProps {
+  kwargs: Record<string, any>;
+  onChange: (updated: Record<string, any>) => void;
+}
+
+const EditableRenderer = ({ kwargs, onChange }: EditableRendererProps) => {
+  const [localKwargs, setLocalKwargs] = useState(kwargs);
+
+  const handleChange = (key: string, value: any) => {
+    const updated = { ...localKwargs, [key]: value };
+    setLocalKwargs(updated);
+    onChange(updated); // Notify parent of change
+  };
+
+  return (
+    <div className="bg-blue-500/10 border border-blue-400/50 p-4 rounded-lg">
+      <div className="flex items-center text-blue-300">
+        <Square className="mr-3 flex-shrink-0" size={24} />
+        <h4 className="font-bold text-lg">Editable Arguments</h4>
+      </div>
+      <ul className="mt-4 space-y-2 font-mono text-sm text-blue-200/90">
+        {Object.entries(localKwargs).map(([key, value]) => (
+          <li key={key}>
+            <span className="text-blue-300 font-semibold">{key}</span>:
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => handleChange(key, e.target.value)}
+              className="ml-2 p-1 rounded-md text-blue-300 bg-transparent border border-blue-400/50"
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 
 const FileSystemRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
   <div className="bg-yellow-500/10 border border-yellow-400/50 p-4 rounded-lg">
@@ -58,18 +95,27 @@ const NukeLaunchRenderer = ({ kwargs }: { kwargs: Record<string, any> }) => (
   </div>
 );
 
+
 // --- Main Card Component ---
 
 export const ApprovalCard = ({ toolCall, onApprove, onDeny, onSelect, isSelected }: ApprovalCardProps) => {
   const { id, tool_name, kwargs, renderer } = toolCall;
 
+  const [updatedKwargs, setUpdatedKwargs] = useState(kwargs);
+
   const renderContent = () => {
     switch (renderer) {
-      case "FileSystemRenderer": return <FileSystemRenderer kwargs={kwargs} />;
-      case "NukeLaunchRenderer": return <NukeLaunchRenderer kwargs={kwargs} />;
-      default: return <DefaultRenderer kwargs={kwargs} />;
+      case "FileSystemRenderer":
+        return <FileSystemRenderer kwargs={kwargs} />;
+      case "NukeLaunchRenderer":
+        return <NukeLaunchRenderer kwargs={kwargs} />;
+      case "EditableRenderer":
+        return <EditableRenderer kwargs={updatedKwargs} onChange={setUpdatedKwargs} />;
+      default:
+        return <DefaultRenderer kwargs={kwargs} />;
     }
   };
+
 
   const toolIcons: Record<string, React.ReactNode> = {
     send_email: <Send size={24} className="text-blue-300" />,
@@ -93,7 +139,7 @@ export const ApprovalCard = ({ toolCall, onApprove, onDeny, onSelect, isSelected
               {isSelected ? <CheckSquare className="text-indigo-400" size={22} /> : <Square size={22} />}
             </button>
             <button
-              onClick={() => onApprove(id)}
+              onClick={() => onApprove(id, updatedKwargs)}
               className="glass-button glass-button--green"
             >
               <Check size={16} />

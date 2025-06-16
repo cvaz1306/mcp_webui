@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
@@ -34,16 +34,23 @@ async def get_tool_calls():
         status_code=200,
     )
 
+from pydantic import BaseModel
+
+class ToolCallUpdate(BaseModel):
+    modifications: Dict[str, Any]
+
 @app.post("/api/approve/{call_id}")
-async def approve_tool_call(call_id: str):
+async def approve_tool_call(call_id: str, data: ToolCallUpdate):
     success = await approval_manager.approve(call_id)
     if success:
-        return JSONResponse(
-            {"status": "approved", "call_id": call_id}, status_code=200
-        )
-    return JSONResponse(
-        {"status": "not_found", "call_id": call_id}, status_code=404
-    )
+        if data.modifications:
+            tool_call = next((call for call in approval_manager._call_log if call["id"] == call_id), None)
+            if tool_call:
+                tool_call["kwargs"].update(data.modifications)
+                await approval_manager.broadcast({"type": "log_update", "payload": tool_call})
+        return JSONResponse({"status": "approved", "call_id": call_id}, status_code=200)
+    return JSONResponse({"status": "not_found", "call_id": call_id}, status_code=404)
+
 
 @app.post("/api/deny/{call_id}")
 async def deny_tool_call(call_id: str):

@@ -80,7 +80,20 @@ class ApprovalManager:
         await self.broadcast({"type": "new_request", "payload": request_details})
 
         # Wait here until the user approves via the API
-        await approval_event.wait()
+        try:
+            await approval_event.wait()
+
+            if call_id not in self._pending_approvals and self._call_log[-1]["status"] == "denied":
+                raise RuntimeError(f"Tool call '{tool_name}' ({call_id}) was denied.")
+        except Exception as e:
+            rs = f"Tool call '{tool_name}' ({call_id}) was denied."
+            print(rs)
+            self._call_log[-1]["status"] = "denied"
+            await self.broadcast({
+                "type": "request_denied",
+                "payload": {"id": call_id},
+            })
+            return rs
 
         print(f"Tool call '{tool_name}' ({call_id}) was approved. Executing.")
         # Once approved, execute the original function
@@ -106,7 +119,9 @@ class ApprovalManager:
     async def deny(self, call_id: str):
         """Deny a pending tool call."""
         if call_id in self._pending_approvals:
+            print(f"Tool call '{call_id}' was denied.")
             approval = self._pending_approvals.pop(call_id)
+            approval["event"].set()
             self._call_log[-1]["status"] = "denied"
             await self.broadcast({
                 "type": "request_denied",
