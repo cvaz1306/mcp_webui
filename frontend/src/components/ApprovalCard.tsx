@@ -47,7 +47,7 @@ const EditableRenderer = ({ kwargs, onChange }: EditableRendererProps) => {
         <Square className="mr-3 flex-shrink-0" size={24} />
         <h4 className="font-bold text-lg">Editable Arguments</h4>
       </div>
-      <ul className="mt-4 space-y-2 font-mono text-sm text-blue-200/90">
+      <ul className="mt-4 space-y-2 font-mono text-lg text-blue-200/90">
         {Object.entries(localKwargs).map(([key, value]) => (
           <li key={key} className="flex items-center">
             <span className="text-blue-300 font-semibold w-32">{key}</span>

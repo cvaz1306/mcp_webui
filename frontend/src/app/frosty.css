@@ -158,6 +158,10 @@
         cursor: not-allowed;
     }
 
+    
+    .glass-button--green:not(:disabled) { background: radial-gradient(circle at center, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 0.05) 100%); }
+    .glass-button--red:not(:disabled) { background: radial-gradient(circle at center, rgba(239, 68, 68, 0.295) 0%, rgba(239, 68, 68, 0.05) 100%); }
+
     /* NEW: Button Color Variants with glowing radial gradients on hover */
     .glass-button--green:not(:disabled):hover { background: radial-gradient(circle at center, rgba(74, 222, 128, 0.4) 0%, rgba(74, 222, 128, 0.2) 100%); border-image: linear-gradient(135deg, rgba(74, 222, 128, 0.8), rgba(74, 222, 128, 0.4)) 1;}
     .glass-button--red:not(:disabled):hover { background: radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.2) 100%); border-image: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0.4)) 1; }

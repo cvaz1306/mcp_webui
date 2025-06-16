@@ -178,7 +178,7 @@ export default function HomePage() {
             <h1 className="text-3xl font-bold text-white" style={{ textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>MCP Human-in-the-Loop</h1>
             <p className="text-white/70">Real-time LLM Tool Approval Dashboard</p>
           </div>
-          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold border ${isConnected ? 'bg-green-500/20 text-green-200 border-green-400/30' : 'bg-red-500/20 text-red-200 border-red-400/30'}`}>
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-lg font-semibold border ${isConnected ? 'bg-green-500/20 text-green-200 border-green-400/30' : 'bg-red-500/20 text-red-200 border-red-400/30'}`}>
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
             <span>{isConnected ? "Connected" : "Disconnected"}</span>
           </div>
@@ -231,7 +231,7 @@ export default function HomePage() {
         <section className="mt-12">
           <h2 className="text-2xl font-semibold mb-4 text-white/90">Execution Log</h2>
           {log.slice().reverse().map(l => (
-            <div className="glass-card p-4 h-30 overflow-y-auto font-mono text-sm mb-4">
+            <div className="glass-card p-4 h-fit overflow-y-auto font-mono text-lg mb-4">
               <div className="card-content">
                 <div key={l.id} className="flex items-start space-x-3 py-2 border-b border-white/10 last:border-b-0">
                   <div className="flex-shrink-0 pt-1">
