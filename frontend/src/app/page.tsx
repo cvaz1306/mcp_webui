@@ -3,33 +3,32 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ApprovalCard, ToolCall } from "@/components/ApprovalCard";
-import { Check, ChevronsRight, Server, Trash2, XCircle } from "lucide-react";
+import { Check, MessageSquare, ChevronsRight, Server, Trash2, XCircle } from "lucide-react";
+import { ApprovalQueue, ToolCallLogItem } from "@/components/ApprovalQueue";
+import { ChatInterface, ChatMessage, PendingQuestion } from "@/components/ChatInterface";
 
-// Import the new CSS file
 import './frosty.css';
 
-type LogItem = ToolCall & { status?: 'pending' | 'auto_approved' | 'approved_and_executed' | 'denied' };
-
 export default function HomePage() {
-  const [pending, setPending] = useState<ToolCall[]>([]);
-  const [log, setLog] = useState<LogItem[]>([]);
+  // --- STATE MANAGEMENT ---
+  const [pending, setPending] = useState<ToolCallLogItem[]>([]);
+  const [log, setLog] = useState<ToolCallLogItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isConnected, setIsConnected] = useState(false);
-  const buttonsRef = useRef<NodeListOf<Element> | null>(null);
+  
+  // New state for Chat Interface
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
 
-  // Action Handlers
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // --- ACTION HANDLERS (Tool Approval) ---
   const handleApprove = async (id: string, args: Record<string, any>) => {
     await fetch(`http://localhost:8000/api/approve/${id}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        modifications: args
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ modifications: args }),
     });
-
   };
 
   const handleDeny = async (id: string) => {
@@ -59,31 +58,39 @@ export default function HomePage() {
   const toggleSelection = (id: string) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
       return newSet;
     });
   };
 
-  // WebSocket and Data Fetching
+  // --- ACTION HANDLERS (Chat) ---
+  const handleSendMessage = (message: string, questionId?: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const payload = {
+        type: "user_response",
+        payload: {
+          text: message,
+          question_id: questionId,
+        },
+      };
+      wsRef.current.send(JSON.stringify(payload));
+      
+      // Optimistic UI update
+      setChatHistory(prev => [...prev, { author: 'user', text: message }]);
+      if (questionId) {
+        setPendingQuestion(null); // Assume question is resolved on send
+      }
+    }
+  };
+
+  // --- WEBSOCKET AND DATA FETCHING ---
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const response = await fetch("http://localhost:8000/api/tool_calls");
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
         const data = await response.json();
-        if (!data.pending) {
-          // throw new Error("Error: data.pending is undefined");
-        }
-        else {
-          setPending(data.pending.map((p: any) => p.details));
-          setLog(data.log);
-        }
+        if (data.pending) setPending(data.pending.map((p: any) => ({ ...p.details, status: 'pending' })));
+        if (data.log) setLog(data.log);
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
@@ -92,6 +99,7 @@ export default function HomePage() {
     fetchInitialData();
 
     const ws = new WebSocket("ws://localhost:8000/ws");
+    wsRef.current = ws;
 
     ws.onopen = () => setIsConnected(true);
     ws.onclose = () => setIsConnected(false);
@@ -99,13 +107,15 @@ export default function HomePage() {
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       switch (message.type) {
+        // Tool call messages
         case "initial_state":
-          setPending(message.payload.pending.map((p: any) => p.details));
+          setPending(message.payload.pending.map((p: any) => ({...p.details, status: 'pending'})));
           setLog(message.payload.log);
           break;
         case "new_request":
-          setPending((prev) => [...prev, message.payload]);
-          setLog((prev) => [...prev, { ...message.payload, status: 'pending' }]);
+          const newRequest = { ...message.payload, status: 'pending' };
+          setPending((prev) => [...prev, newRequest]);
+          setLog((prev) => [...prev, newRequest]);
           break;
         case "request_approved":
           setPending((prev) => prev.filter((p) => p.id !== message.payload.id));
@@ -118,57 +128,34 @@ export default function HomePage() {
         case "log_update":
           setLog((prev) => [...prev, message.payload]);
           break;
+
+        // New chat messages
+        case "new_question":
+          setPendingQuestion(message.payload);
+          setChatHistory(prev => [...prev, { author: 'server', text: message.payload.text }]);
+          break;
+        case "new_chat_message":
+          setChatHistory(prev => [...prev, message.payload]);
+          break;
+        case "question_resolved":
+            // This can be used for server-side confirmation if optimistic update isn't enough
+            if (pendingQuestion?.id === message.payload.id) {
+                setPendingQuestion(null);
+            }
+            break;
       }
     };
 
-    return () => ws.close();
-  }, []); // Only runs on mount and unmount
-
-
-  // Interactive Effects
-  useEffect(() => {
-    []
-    const handleMouseMove = (e: MouseEvent) => {
-      const mouseX = e.clientX / window.innerWidth;
-      const mouseY = e.clientY / window.innerHeight;
-
-
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-
-    // Add click ripple effect to buttons
-    const handleButtonClick = (e: MouseEvent) => {
-      const button = (e.currentTarget as HTMLElement);
-      const ripple = document.createElement('div');
-      const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      const x = e.clientX - rect.left - size / 2;
-      const y = e.clientY - rect.top - size / 2;
-
-      ripple.style.cssText = `
-        position: absolute;
-        width: ${size}px; height: ${size}px;
-        left: ${x}px; top: ${y}px;
-        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-        border-radius: 50%;
-        transform: scale(0);
-        animation: ripple 0.6s ease-out;
-        pointer-events: none;
-    `;
-      button.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove());
-    };
-
-    buttonsRef.current = document.querySelectorAll('.glass-button');
-    buttonsRef.current.forEach(button => button.addEventListener('click', handleButtonClick));
-
-    // Cleanup event listeners
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      buttonsRef.current?.forEach(button => button.removeEventListener('click', handleButtonClick));
+      ws.close();
+      wsRef.current = null;
     };
-  }, []); // Runs only on mount and unmount.  No dependencies.
+  }, []);
 
+  // --- RESPONSIVE LAYOUT LOGIC ---
+  // On small screens, prioritize showing a pending question over the approval queue.
+  const showChatOnMobile = pendingQuestion !== null;
+  const showQueueOnMobile = !showChatOnMobile;
 
   return (
     <main className="frosty-background">
@@ -176,81 +163,64 @@ export default function HomePage() {
         <header className="flex items-center justify-between mb-8 border-b border-white/20 pb-4">
           <div>
             <h1 className="text-3xl font-bold text-white" style={{ textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>MCP Human-in-the-Loop</h1>
-            <p className="text-white/70">Real-time LLM Tool Approval Dashboard</p>
+            <p className="text-white/70">Real-time LLM Tool & Chat Approval Dashboard</p>
           </div>
-          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-lg font-semibold border ${isConnected ? 'bg-green-500/20 text-green-200 border-green-400/30' : 'bg-red-500/20 text-red-200 border-red-400/30'}`}>
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold border ${isConnected ? 'bg-green-500/20 text-green-200 border-green-400/30' : 'bg-red-500/20 text-red-200 border-red-400/30'}`}>
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
             <span>{isConnected ? "Connected" : "Disconnected"}</span>
           </div>
         </header>
 
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-white/90">Approval Queue ({pending.length})</h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleBatchApprove}
-                disabled={selectedIds.size === 0}
-                className="glass-button glass-button--indigo"
-              >
-                <Check size={18} />
-                <span>Approve Selected ({selectedIds.size})</span>
-              </button>
-              <button
-                onClick={handleBatchDeny}
-                disabled={selectedIds.size === 0}
-                className="glass-button glass-button--red"
-              >
-                <Trash2 size={18} />
-                <span>Deny Selected ({selectedIds.size})</span>
-              </button>
-            </div>
+        {/* Main Content Area: Split Screen */}
+        <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
+          
+          {/* Left Panel: Approval Queue */}
+          <div className={`lg:w-1/2 ${showQueueOnMobile ? 'block' : 'hidden'} lg:block`}>
+            <ApprovalQueue
+              pending={pending}
+              selectedIds={selectedIds}
+              onApprove={handleApprove}
+              onDeny={handleDeny}
+              onSelect={toggleSelection}
+              onBatchApprove={handleBatchApprove}
+              onBatchDeny={handleBatchDeny}
+            />
           </div>
-          <div className="space-y-6" style={{ perspective: '1000px' }}>
-            {pending.length > 0 ? (
-              pending.map((toolCall) => (
-                <ApprovalCard
-                  key={toolCall.id}
-                  toolCall={toolCall}
-                  onApprove={handleApprove}
-                  onDeny={handleDeny}
-                  onSelect={toggleSelection}
-                  isSelected={selectedIds.has(toolCall.id)}
-                />
-              ))
-            ) : (
-              <div className="glass-card text-center py-16">
-                <div className="card-content">
-                  <p className="text-white/70">No tools are currently waiting for approval.</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
 
+          {/* Right Panel: Chat Interface */}
+          <div className={`lg:w-1/2 ${showChatOnMobile ? 'block' : 'hidden'} lg:block`}>
+             <ChatInterface 
+                history={chatHistory}
+                pendingQuestion={pendingQuestion}
+                onSendMessage={handleSendMessage}
+             />
+          </div>
+        </div>
+
+        {/* Execution Log (Full Width) */}
         <section className="mt-12">
           <h2 className="text-2xl font-semibold mb-4 text-white/90">Execution Log</h2>
-          {log.slice().reverse().map(l => (
-            <div className="glass-card p-4 h-fit overflow-y-auto font-mono text-lg mb-4">
-              <div className="card-content">
-                <div key={l.id} className="flex items-start space-x-3 py-2 border-b border-white/10 last:border-b-0">
-                  <div className="flex-shrink-0 pt-1">
-                    {l.status === 'pending' && <ChevronsRight className="text-yellow-400" size={16} />}
-                    {l.status === 'auto_approved' && <Check className="text-blue-400" size={16} />}
-                    {l.status === 'approved_and_executed' && <Check className="text-green-400" size={16} />}
-                    {l.status === 'denied' && <XCircle className="text-red-400" size={16} />}
+           <div className="glass-card p-4 h-64 overflow-y-auto font-mono text-sm">
+             <div className="card-content">
+                {log.slice().reverse().map(l => (
+                  <div key={l.id} className="flex items-start space-x-3 py-2 border-b border-white/10 last:border-b-0">
+                    <div className="flex-shrink-0 pt-1">
+                      {l.status === 'pending' && <ChevronsRight className="text-yellow-400" size={16} />}
+                      {l.status === 'auto_approved' && <Check className="text-blue-400" size={16} />}
+                      {l.status === 'approved_and_executed' && <Check className="text-green-400" size={16} />}
+                      {l.status === 'denied' && <XCircle className="text-red-400" size={16} />}
+                    </div>
+                    <div className="flex-grow">
+                      <span className="text-purple-300">{l.tool_name}</span>
+                      <span className="text-white/50"> ({(l.status || 'unknown').replace(/_/g, ' ')})</span>
+                      <p className="text-white/70 break-all">
+                        {JSON.stringify(l.kwargs)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-grow">
-                    <span className="text-purple-300">{l.tool_name}</span>
-                    <span className="text-white/50"> ({(l.status || 'unknown').replace(/_/g, ' ')})</span>
-                    <p className="text-white/70 break-all">
-                      {JSON.stringify(l.kwargs)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                ))}
+             </div>
+           </div>
         </section>
       </div>
     </main>
