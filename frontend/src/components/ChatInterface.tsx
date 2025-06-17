@@ -51,12 +51,12 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
 
     return (
         <section className="flex flex-col h-full">
-            <div className="flex items-center mb-4">
+            <div style={{height: '44px'}} className="flex items-center mb-4">
                 <MessageSquare className="mr-3 text-indigo-300" />
                 <h2 className="text-2xl font-semibold text-white/90">Server Chat</h2>
             </div>
 
-            <div className="glass-card flex-grow flex flex-col p-0 overflow-hidden">
+            <div style={{ maxHeight: '500px', height: '500px' }} className="glass-card flex-grow flex flex-col p-0 overflow-hidden">
                 {/* Message Display Area */}
                 <div className="card-content flex-grow p-6 overflow-y-auto space-y-4">
                     {history.map((msg, index) => (

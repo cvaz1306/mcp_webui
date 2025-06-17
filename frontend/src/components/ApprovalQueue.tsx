@@ -52,7 +52,7 @@ export const ApprovalQueue = ({ pending, selectedIds, onApprove, onDeny, onSelec
                         />
                     ))
                 ) : (
-                    <div className="glass-card text-center py-16">
+                    <div style={{ maxHeight: '500px', height: '500px' }} className="glass-card text-center py-16">
                         <div className="card-content">
                             <p className="text-white/70">No tools are currently waiting for approval.</p>
                         </div>
