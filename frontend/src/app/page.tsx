@@ -75,8 +75,11 @@ export default function HomePage() {
       };
       wsRef.current.send(JSON.stringify(payload));
       
+      // Log the message being sent
+      console.log(`Sending message: ${message}, Question ID: ${questionId}`);
+
       // Optimistic UI update
-      setChatHistory(prev => [...prev, { author: 'user', text: message }]);
+      // setChatHistory(prev => [...prev, { author: 'user', text: message }]);
       if (questionId) {
         setPendingQuestion(null); // Assume question is resolved on send
       }

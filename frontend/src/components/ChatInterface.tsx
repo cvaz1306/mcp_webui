@@ -31,9 +31,19 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
 
     useEffect(scrollToBottom, [history]);
 
+    // const handleSend = () => {
+    //     if (inputValue.trim() === "" && (!pendingQuestion || pendingQuestion.type !== 'multiple_choice')) return;
+    //     onSendMessage(inputValue, pendingQuestion?.id);
+    //     setInputValue("");
+    // };
+
     const handleSend = () => {
         if (inputValue.trim() === "" && (!pendingQuestion || pendingQuestion.type !== 'multiple_choice')) return;
-        onSendMessage(inputValue, pendingQuestion?.id);
+        if (pendingQuestion) {
+            onSendMessage(inputValue, pendingQuestion.id);
+        } else {
+            onSendMessage(inputValue);
+        }
         setInputValue("");
     };
 
@@ -51,7 +61,7 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
 
     return (
         <section className="flex flex-col h-full">
-            <div style={{height: '44px'}} className="flex items-center mb-4">
+            <div style={{ height: '44px' }} className="flex items-center mb-4">
                 <MessageSquare className="mr-3 text-indigo-300" />
                 <h2 className="text-2xl font-semibold text-white/90">Server Chat</h2>
             </div>
@@ -61,10 +71,10 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
                 <div className="card-content flex-grow p-6 overflow-y-auto space-y-4">
                     {history.map((msg, index) => (
                         <div key={index} className={`flex items-end gap-3 ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
-                           {msg.author === 'server' && <div className="w-8 h-8 rounded-full bg-indigo-500/50 flex-shrink-0"></div>}
-                           <div className={`chat-bubble ${msg.author === 'user' ? 'chat-bubble--user' : 'chat-bubble--server'}`}>
+                            {msg.author === 'server' && <div className="w-8 h-8 rounded-full bg-indigo-500/50 flex-shrink-0"></div>}
+                            <div className={`chat-bubble ${msg.author === 'user' ? 'chat-bubble--user' : 'chat-bubble--server'}`}>
                                 {msg.text}
-                           </div>
+                            </div>
                         </div>
                     ))}
                     <div ref={messagesEndRef} />
@@ -75,7 +85,7 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
                     {pendingQuestion && (
                         <div className="mb-3">
                             <p className="text-sm text-yellow-300 mb-2 font-semibold">Awaiting your response:</p>
-                             {pendingQuestion.type === 'multiple_choice' && pendingQuestion.options && (
+                            {pendingQuestion.type === 'multiple_choice' && pendingQuestion.options && (
                                 <div className="flex flex-wrap gap-2">
                                     {pendingQuestion.options.map(option => (
                                         <button key={option} onClick={() => handleOptionClick(option)} className="glass-button glass-button--indigo text-sm">
@@ -83,7 +93,7 @@ export const ChatInterface = ({ history, pendingQuestion, onSendMessage }: ChatI
                                         </button>
                                     ))}
                                 </div>
-                             )}
+                            )}
                         </div>
                     )}
 
