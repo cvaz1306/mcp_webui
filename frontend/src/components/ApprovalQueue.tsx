@@ -39,7 +39,7 @@ export const ApprovalQueue = ({ pending, selectedIds, onApprove, onDeny, onSelec
                     </button>
                 </div>
             </div>
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2" style={{ perspective: '1000px' }}>
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto" style={{ perspective: '1000px' }}>
                 {pending.length > 0 ? (
                     pending.map((toolCall) => (
                         <ApprovalCard

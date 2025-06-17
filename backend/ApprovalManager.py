@@ -106,7 +106,14 @@ class ApprovalManager:
 
         print(f"Received response for question ({question_id}): '{user_response}'")
         return user_response
-
+    
+    
+    async def tell_user(self, message: str):
+        """
+        Sends a message to the user, marking it as a message from the server.
+        """
+        self._chat_history.append(ChatMessage(author="server", text=message).model_dump())
+        await self.broadcast({"type": "new_message", "payload": {"author": "server", "text": message}})
     async def handle_user_response(self, payload: Dict[str, Any]):
         """
         Handles a user response received from the WebSocket.

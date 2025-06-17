@@ -137,6 +137,9 @@ export default function HomePage() {
           setPendingQuestion(message.payload);
           setChatHistory(prev => [...prev, { author: 'server', text: message.payload.text }]);
           break;
+        case "new_message":
+          setChatHistory(prev => [...prev, message.payload]);
+          break;
         case "new_chat_message":
           setChatHistory(prev => [...prev, message.payload]);
           break;

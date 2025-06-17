@@ -1,5 +1,6 @@
 import asyncio
 import random
+from typing import List, Optional
 from fastmcp import FastMCP
 from human_in_the_loop import human_in_the_loop
 from ApprovalManager import approval_manager
@@ -45,18 +46,34 @@ async def launch_nukes(target_coordinates: str, confirmation_code: str) -> str:
 
 @mcp.tool
 @human_in_the_loop(requires_approval=False)
-async def ask_question(question: str) -> str:
+async def ask_question(question: str, options: Optional[List[str]] = None) -> str:
     """
     Asks a question to the user.
 
     Args:
         question (str): The question to ask the user.
+        options (Optional[List[str]]): A list of options to present to the user.
 
     Returns:
         str: The answer to the question.
     """
-    response = await approval_manager.ask_question(question)
+    response = await approval_manager.ask_question(question, options)
     return response
+
+@mcp.tool
+@human_in_the_loop(requires_approval=False)
+async def tell_user(message: str) -> str:
+    """
+    Sends a message to the user.
+
+    Args:
+        message (str): The message to send to the user.
+
+    Returns:
+        str: A confirmation message.
+    """
+    await approval_manager.tell_user(message)
+    return "Message sent to user."
 
 if __name__ == "__main__":
     # To run the backend, you just need to run `main.py`
