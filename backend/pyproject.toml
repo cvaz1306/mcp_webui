@@ -2,7 +2,10 @@
 name = "mcp-hitl-backend"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Christopher Vaz <christohervaz160@gmail.com>"]
+
+[[tool.poetry.packages]]
+include = "mcp_backend"
 
 [tool.poetry.dependencies]
 python = "^3.10"
